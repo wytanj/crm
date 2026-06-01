@@ -1,0 +1,64 @@
+import { describe, expect, it } from 'vitest'
+import {
+  checkoutPayloadSchema,
+  graphSearchQuerySchema,
+  schemaFieldPayloadSchema
+} from '../server/utils/contracts'
+
+describe('agent schema extension contract', () => {
+  it('accepts an agent-proposed custom field', () => {
+    const payload = schemaFieldPayloadSchema.parse({
+      entityType: 'person',
+      key: 'preferred_channel',
+      label: 'Preferred channel',
+      type: 'text',
+      required: false,
+      origin: 'agent'
+    })
+
+    expect(payload).toMatchObject({
+      entityType: 'person',
+      key: 'preferred_channel',
+      origin: 'agent'
+    })
+  })
+
+  it('defaults schema field origin to custom for human-created fields', () => {
+    const payload = schemaFieldPayloadSchema.parse({
+      entityType: 'company',
+      key: 'annual_contract_value',
+      label: 'Annual contract value',
+      type: 'number'
+    })
+
+    expect(payload.required).toBe(false)
+    expect(payload.origin).toBe('custom')
+  })
+
+  it('rejects field keys that would be unsafe as schema handles', () => {
+    expect(() => schemaFieldPayloadSchema.parse({
+      entityType: 'person',
+      key: 'Preferred Channel',
+      label: 'Preferred channel',
+      type: 'text'
+    })).toThrow()
+  })
+})
+
+describe('API payload contracts', () => {
+  it('only accepts hosted paid plans for checkout', () => {
+    expect(checkoutPayloadSchema.parse({
+      email: 'founder@example.com',
+      plan: 'hosted_growth'
+    }).plan).toBe('hosted_growth')
+
+    expect(() => checkoutPayloadSchema.parse({
+      email: 'founder@example.com',
+      plan: 'open_source'
+    })).toThrow()
+  })
+
+  it('normalizes graph search input by trimming whitespace', () => {
+    expect(graphSearchQuerySchema.parse({ q: '  ava  ' }).q).toBe('ava')
+  })
+})
