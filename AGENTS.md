@@ -10,6 +10,7 @@ When a change touches any of these surfaces, update the matching documentation i
 - Database tables, entity types, base fields, or relationships: update `docs/agents/DATA_MODEL.md`.
 - Agent permissions, proposal flow, execution rules, or audit behavior: update `docs/agents/AGENT_PROTOCOL.md`.
 - Agent skills or capabilities: update `docs/agents/SKILLS.md`.
+- Public documentation UI: update the matching Markdown page in `content/docs`.
 - Pricing, hosted plan behavior, or open-source setup: update `README.md` and relevant user-facing pages.
 
 The test suite includes documentation coverage checks for API routes. Add or update those tests when the agent-facing contract expands.

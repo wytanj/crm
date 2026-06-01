@@ -5,5 +5,5 @@ definePageMeta({
 </script>
 
 <template>
-  <DocsReader path="/docs" />
+  <DocsReader path="/docs/model" />
 </template>

@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-06-01',
   devtools: { enabled: true },
+  modules: ['@nuxt/content'],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,

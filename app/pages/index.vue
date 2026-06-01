@@ -61,6 +61,11 @@ definePageMeta({
         <h3>Agent Skills</h3>
         <p>Graph search, entity neighborhood reads, schema proposals, identity merges, and approved execution.</p>
       </NuxtLink>
+      <NuxtLink class="doc-card" to="/docs/model">
+        <span>Model</span>
+        <h3>Data Model</h3>
+        <p>Base fields, Shopify-style customer properties, graph relationships, and agent schema extension rules.</p>
+      </NuxtLink>
     </section>
 
     <section class="feature-grid">

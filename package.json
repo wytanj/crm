@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.17.0",
+    "@nuxt/content": "^3.14.0",
     "@supabase/supabase-js": "latest",
+    "better-sqlite3": "^12.10.0",
     "nuxt": "latest",
     "zod": "latest"
   },
