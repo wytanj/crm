@@ -7,7 +7,8 @@ const query = ref('')
 
 const pageTitle = computed(() => {
   const labels: Record<string, string> = {
-    '/': 'Customer Graph',
+    '/': 'Open Spine CRM',
+    '/graph': 'Customer Graph',
     '/schema': 'Schema Designer',
     '/api-console': 'API Layer',
     '/agents': 'Agent Workbench',
@@ -36,7 +37,7 @@ const pageTitle = computed(() => {
       <NuxtLink class="icon-button" to="/settings" title="API keys">
         <KeyRound :size="18" />
       </NuxtLink>
-      <a class="icon-button" href="https://github.com" target="_blank" rel="noreferrer" title="Repository">
+      <a class="icon-button" href="https://github.com/wytanj/crm" target="_blank" rel="noreferrer" title="Repository">
         <GitBranch :size="18" />
       </a>
       <NuxtLink class="user-button" to="/login">

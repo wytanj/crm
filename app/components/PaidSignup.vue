@@ -17,14 +17,14 @@ const plans = [
   {
     key: 'hosted_growth',
     name: 'Hosted Growth',
-    price: '$49',
+    price: 'Free now',
     icon: CreditCard,
-    items: ['Managed workspace', 'Billing and team setup', 'Core ecommerce integrations', 'Approval logs for agents']
+    items: ['Planned $9/month later', 'Managed workspace', 'Billing and team setup', 'Approval logs for agents']
   },
   {
     key: 'hosted_scale',
     name: 'Hosted Scale',
-    price: 'Custom',
+    price: '$9 later',
     icon: CreditCard,
     items: ['Private integration runs', 'Dedicated schema support', 'Advanced audit retention', 'Priority MCP roadmap access']
   }
@@ -60,8 +60,8 @@ const plans = [
   <form class="checkout-panel" @submit.prevent="startCheckout(email, selectedPlan)">
     <div>
       <p class="eyebrow">Hosted signup</p>
-      <h2>Create a paid workspace</h2>
-      <p>Paid workspaces are for teams that want managed hosting and integrations while keeping the same open CRM core.</p>
+      <h2>Create a hosted workspace</h2>
+      <p>Hosted workspaces are free for now. The planned hosted tier is $9/month once billing is turned on.</p>
     </div>
     <label>
       <span>Work email</span>

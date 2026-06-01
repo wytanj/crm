@@ -36,3 +36,13 @@ Future MCP servers should expose workspace-scoped tools around:
 - Execute an approved action.
 
 The MCP layer should use the same audit and execution tables as the web app.
+
+## Agent Documentation Maintenance
+
+Agent-facing implementation details live in `docs/agents/`.
+
+- API routes: `docs/agents/API_CONTRACT.md`
+- Data model: `docs/agents/DATA_MODEL.md`
+- Agent workflow and approvals: `docs/agents/AGENT_PROTOCOL.md`
+
+Any code change that updates routes, schema, proposal behavior, or execution behavior should update the matching agent document in the same change.

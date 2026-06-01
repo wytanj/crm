@@ -16,7 +16,7 @@ const checkoutNotice = computed(() => {
     <div class="intro-strip">
       <div>
         <p class="eyebrow">Open core, hosted option</p>
-        <h2>Self-host the CRM with Supabase keys, or pay for managed workspaces and integrations.</h2>
+        <h2>Self-host the CRM with Supabase keys, or sign up for the hosted tier free now before it becomes $9/month.</h2>
       </div>
       <NuxtLink class="secondary-button" to="/settings">Configure Supabase</NuxtLink>
     </div>

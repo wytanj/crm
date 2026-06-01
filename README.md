@@ -7,8 +7,12 @@ A headless open CRM for B2C and B2B customer data. The core is designed as a gra
 - Graph first: people, companies, households, orders, products, tickets, messages, and campaigns are entities connected through typed relationships.
 - API layer first: UI, integrations, and agents should read/write through stable API contracts instead of being coupled to page state.
 - Open source by default: self-host with Supabase keys and the SQL migration in `supabase/migrations`.
-- Hosted plan optional: paid users can sign up for managed hosting, billing, and integrations without changing the core data model.
+- Hosted plan optional: hosted workspaces are free for now, with a planned $9/month tier for managed hosting and integrations.
 - Schema-flexible: minimal Shopify-like customer fields are provided, but teams and agents can define custom entity schemas and fields.
+
+## Agent Docs
+
+Agent-facing contracts live in `AGENTS.md` and `docs/agents/`. When API routes, database schema, or agent workflows change, update those docs in the same change.
 
 ## Quick Start
 

@@ -12,7 +12,8 @@ import {
 } from '@lucide/vue'
 
 const navItems = [
-  { label: 'Graph', to: '/', icon: LayoutDashboard },
+  { label: 'Home', to: '/', icon: LayoutDashboard },
+  { label: 'Graph', to: '/graph', icon: Database },
   { label: 'Schema', to: '/schema', icon: Braces },
   { label: 'API', to: '/api-console', icon: GitFork },
   { label: 'Agents', to: '/agents', icon: Bot },
