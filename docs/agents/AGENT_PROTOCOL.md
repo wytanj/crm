@@ -49,3 +49,5 @@ Future MCP tools should expose workspace-scoped actions:
 - Execute approved action.
 
 MCP tools should use the same proposal, approval, execution, and audit tables as the web app.
+
+Public app reference: `/docs/agents`.

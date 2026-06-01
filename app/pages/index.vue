@@ -20,6 +20,8 @@ definePageMeta({
       </NuxtLink>
       <nav aria-label="Landing">
         <NuxtLink to="/graph">Demo</NuxtLink>
+        <NuxtLink to="/docs/api">API docs</NuxtLink>
+        <NuxtLink to="/docs/agents">Agent docs</NuxtLink>
         <NuxtLink to="/pricing">Pricing</NuxtLink>
         <NuxtLink to="/login">Log in</NuxtLink>
         <NuxtLink class="primary-button" to="/login">Sign up free</NuxtLink>
@@ -38,8 +40,27 @@ definePageMeta({
           <NuxtLink class="primary-button" to="/login">Sign up free</NuxtLink>
           <NuxtLink class="secondary-button" to="/login">Log in</NuxtLink>
           <NuxtLink class="secondary-button" to="/graph">View demo CRM</NuxtLink>
+          <NuxtLink class="secondary-button" to="/docs">Read docs</NuxtLink>
         </div>
       </div>
+    </section>
+
+    <section class="docs-card-grid">
+      <NuxtLink class="doc-card" to="/docs/api">
+        <span>API</span>
+        <h3>API Documentation</h3>
+        <p>Routes, payloads, fallback behavior, and contracts for integrations and future MCP tools.</p>
+      </NuxtLink>
+      <NuxtLink class="doc-card" to="/docs/agents">
+        <span>Agents</span>
+        <h3>Agent Documentation</h3>
+        <p>Workspace boundaries, proposal-first behavior, approvals, execution logs, and audit events.</p>
+      </NuxtLink>
+      <NuxtLink class="doc-card" to="/docs/skills">
+        <span>Skills</span>
+        <h3>Agent Skills</h3>
+        <p>Graph search, entity neighborhood reads, schema proposals, identity merges, and approved execution.</p>
+      </NuxtLink>
     </section>
 
     <section class="feature-grid">

@@ -810,6 +810,84 @@ select {
   gap: 14px;
 }
 
+.docs-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.doc-card,
+.docs-panel {
+  min-height: 190px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.doc-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.doc-card span,
+.docs-panel h3 {
+  color: var(--teal);
+}
+
+.doc-card span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.doc-card h3,
+.docs-panel h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.18rem;
+}
+
+.doc-card p,
+.docs-panel p,
+.docs-panel li {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.48;
+}
+
+.docs-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.docs-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.docs-panel ul,
+.docs-panel ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.docs-panel pre {
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #16201f;
+  color: #eef7f2;
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
 .feature-grid article {
   min-height: 210px;
   padding: 18px;
@@ -880,6 +958,7 @@ select {
   .node-cloud,
   .pricing-grid,
   .api-grid,
+  .docs-card-grid,
   .feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -946,6 +1025,8 @@ select {
   .two-column,
   .pricing-grid,
   .api-grid,
+  .docs-card-grid,
+  .docs-layout,
   .feature-grid,
   .settings-grid,
   .checkout-panel {

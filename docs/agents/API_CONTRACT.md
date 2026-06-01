@@ -84,3 +84,5 @@ Rules:
 ## Documentation Rule
 
 Any added, removed, or behavior-changing API route must be reflected here in the same commit.
+
+Public app reference: `/docs/api`.

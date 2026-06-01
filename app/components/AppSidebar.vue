@@ -5,6 +5,7 @@ import {
   Braces,
   CreditCard,
   Database,
+  FileText,
   GitFork,
   LayoutDashboard,
   PlugZap,
@@ -17,6 +18,7 @@ const navItems = [
   { label: 'Schema', to: '/schema', icon: Braces },
   { label: 'API', to: '/api-console', icon: GitFork },
   { label: 'Agents', to: '/agents', icon: Bot },
+  { label: 'Docs', to: '/docs', icon: FileText },
   { label: 'Integrations', to: '/integrations', icon: PlugZap },
   { label: 'Billing', to: '/pricing', icon: CreditCard },
   { label: 'Settings', to: '/settings', icon: Settings }

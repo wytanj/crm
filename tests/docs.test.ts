@@ -31,5 +31,14 @@ describe('agent documentation coverage', () => {
     expect(guide).toContain('docs/agents/API_CONTRACT.md')
     expect(guide).toContain('docs/agents/DATA_MODEL.md')
     expect(guide).toContain('docs/agents/AGENT_PROTOCOL.md')
+    expect(guide).toContain('docs/agents/SKILLS.md')
+  })
+
+  it('links the landing page to API, agent, and skills documentation', () => {
+    const landing = read('app/pages/index.vue')
+
+    expect(landing).toContain('to="/docs/api"')
+    expect(landing).toContain('to="/docs/agents"')
+    expect(landing).toContain('to="/docs/skills"')
   })
 })
