@@ -22,5 +22,26 @@ export const graphSearchQuerySchema = z.object({
   q: z.string().trim().optional()
 })
 
+export const crmEventPayloadSchema = z.object({
+  eventId: z.string().min(3),
+  eventType: z.string().min(3),
+  workspaceId: z.string().uuid().optional(),
+  sourceSystem: z.string().min(2),
+  occurredAt: z.string().datetime(),
+  idempotencyKey: z.string().min(3),
+  actor: z.record(z.string(), z.unknown()).default({}),
+  subject: z.object({
+    customerKey: z.string().optional(),
+    externalCustomerRefs: z.array(z.object({
+      system: z.string().min(1),
+      id: z.string().min(1)
+    })).default([])
+  }).default({ externalCustomerRefs: [] }),
+  context: z.record(z.string(), z.unknown()).default({}),
+  payload: z.record(z.string(), z.unknown()).default({}),
+  schemaVersion: z.number().int().positive().default(1)
+})
+
 export type SchemaFieldPayload = z.infer<typeof schemaFieldPayloadSchema>
 export type CheckoutPayload = z.infer<typeof checkoutPayloadSchema>
+export type CrmEventPayload = z.infer<typeof crmEventPayloadSchema>

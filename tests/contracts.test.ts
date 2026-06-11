@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   checkoutPayloadSchema,
+  crmEventPayloadSchema,
   graphSearchQuerySchema,
   schemaFieldPayloadSchema
 } from '../server/utils/contracts'
@@ -60,5 +61,28 @@ describe('API payload contracts', () => {
 
   it('normalizes graph search input by trimming whitespace', () => {
     expect(graphSearchQuerySchema.parse({ q: '  ava  ' }).q).toBe('ava')
+  })
+
+  it('accepts the cross-repo event contract with idempotency', () => {
+    const payload = crmEventPayloadSchema.parse({
+      eventId: 'pos_sale_123',
+      eventType: 'pos.sale.completed',
+      sourceSystem: 'pos',
+      occurredAt: '2026-06-11T04:00:00.000Z',
+      idempotencyKey: 'pos:store_001:txn_123',
+      subject: {
+        externalCustomerRefs: [
+          { system: 'pos', id: 'cust_123' }
+        ]
+      },
+      context: {
+        channel: 'pos',
+        country: 'SG',
+        currency: 'SGD'
+      }
+    })
+
+    expect(payload.schemaVersion).toBe(1)
+    expect(payload.subject.externalCustomerRefs[0]).toMatchObject({ system: 'pos', id: 'cust_123' })
   })
 })

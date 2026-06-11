@@ -144,3 +144,64 @@ export const demoCrmGraph: CrmGraphResponse = {
     }
   ]
 }
+
+export const demoCustomerProfile = {
+  id: 'person_001',
+  displayName: 'Ava Tan',
+  email: 'ava@example.com',
+  phone: '+65 8123 4470',
+  consent: {
+    email: 'granted',
+    sms: 'granted',
+    sourceSystem: 'shopify',
+    updatedAt: '2026-05-28T11:10:00.000Z'
+  },
+  activityProfile: {
+    lastTransactionAt: '2026-05-28T10:18:00.000Z',
+    daysSinceLastTransaction: 4,
+    transactionCount30d: 3,
+    transactionCount90d: 8,
+    transactionCountLifetime: 18
+  },
+  valueProfile: {
+    averageTransactionValueMinor: 15778,
+    lifetimeValueMinor: 284000,
+    currency: 'SGD',
+    returnRate: 0.06
+  },
+  affinities: [
+    { kind: 'offering', refId: 'sku_kit_001', label: 'Starter bundle', score: 0.82, evidenceCount: 5 },
+    { kind: 'channel', refId: 'shopify', label: 'Online store', score: 0.74, evidenceCount: 18 }
+  ],
+  segments: [
+    { key: 'high_value_repeat_customer', score: 0.91, source: 'system' },
+    { key: 'promotion_responsive', score: 0.68, source: 'system' }
+  ],
+  provenance: {
+    sourceSystems: ['shopify', 'pos', 'support'],
+    inputWatermark: '2026-05-30T00:00:00.000Z'
+  },
+  sensitivityLevel: 'internal',
+  computedAt: '2026-05-30T01:15:00.000Z'
+}
+
+export const demoCustomerTimeline = [
+  {
+    id: 'event_demo_001',
+    eventId: 'shopify_order_10492',
+    eventType: 'commerce.transaction.completed',
+    sourceSystem: 'shopify',
+    occurredAt: '2026-05-28T10:18:00.000Z',
+    context: { channel: 'web', country: 'SG', currency: 'SGD' },
+    payload: { orderNumber: '#SG-10492', totalMinor: 42800 }
+  },
+  {
+    id: 'event_demo_002',
+    eventId: 'support_ticket_55091',
+    eventType: 'support.ticket.opened',
+    sourceSystem: 'zendesk',
+    occurredAt: '2026-05-29T03:08:00.000Z',
+    context: { channel: 'support' },
+    payload: { topic: 'Return size exchange' }
+  }
+]

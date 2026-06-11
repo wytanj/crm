@@ -69,3 +69,35 @@ The proposal should include:
 - reason and source evidence
 
 After approval, the field definition becomes part of the workspace model and future imports can map into it.
+
+## Customer Memory Tables
+
+The CRM acts as the customer graph, consent, memory, segments, and semantic-query foundation. It should not own POS execution, product taxonomy, or loyalty economics.
+
+| Table | Purpose |
+| --- | --- |
+| `crm_events` | Idempotent facts from POS, loyalty, ecommerce, and partner systems. |
+| `crm_external_links` | Links between CRM entities and source-system customer references. |
+| `crm_customer_facts` | Normalized event-derived facts for timelines and projections. |
+| `crm_consent_records` | Consent and contactability history. |
+| `crm_customer_profiles` | Computed activity, value, affinity, intent, and metric read model. |
+| `crm_segment_memberships` | Segment membership projections with score and reason. |
+| `crm_metric_definitions` | Workspace-owned generic metric registry. |
+
+## Event Contract
+
+Every source write should carry:
+
+| Field | Notes |
+| --- | --- |
+| `event_id` | Stable source event identifier. |
+| `event_type` | Business-neutral event type, such as `pos.sale.completed`. |
+| `workspace_id` | Organization boundary. |
+| `source_system` | Origin system such as POS, Shopify, loyalty, or partner. |
+| `occurred_at` | When the fact happened. |
+| `idempotency_key` | Stable replay key that prevents duplicate effects. |
+| `actor` | Human, system, agent, or integration actor context. |
+| `subject` | Customer or account reference context. |
+| `context` | Channel, country, currency, location, register, listing, or related context. |
+| `payload` | Source-specific event payload. |
+| `schema_version` | Contract version for event readers. |

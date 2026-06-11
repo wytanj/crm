@@ -87,3 +87,31 @@ Schema field properties:
 Allowed `origin` values are `core`, `integration`, `custom`, and `agent`.
 
 Use `crm_agent_proposals` for schema suggestions that require review before execution.
+
+## Customer Memory Foundation
+
+The CRM now has Phase 1 customer-memory tables for cross-repo facts:
+
+- `crm_events`: idempotent source events from POS, loyalty, ecommerce, partner channels, or future integration workers.
+- `crm_external_links`: durable links between CRM entities and external customer references.
+- `crm_customer_facts`: normalized customer facts derived from events.
+- `crm_consent_records`: consent and contactability history.
+- `crm_customer_profiles`: computed customer read model with activity, value, affinity, intent, provenance, and sensitivity level.
+- `crm_segment_memberships`: segment membership projections.
+- `crm_metric_definitions`: workspace-owned generic metric registry.
+
+Every source write should carry:
+
+- `event_id`
+- `event_type`
+- `workspace_id`
+- `source_system`
+- `occurred_at`
+- `idempotency_key`
+- `actor`
+- `subject`
+- `context`
+- `payload`
+- `schema_version`
+
+CRM should keep customer graph, consent, customer memory, segments, and semantic query foundations. POS, SKUMS, and loyalty remain the source of truth for checkout execution, product taxonomy, and loyalty economics.

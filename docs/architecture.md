@@ -9,6 +9,22 @@ Open Spine CRM treats CRM data as an operational graph rather than a page-bound 
 - `crm_field_definitions`: schema designed by teams, integrations, or agents without hardcoding every vertical into the core.
 - `crm_agent_proposals`, `crm_approvals`, `crm_execution_logs`: the approval loop agents need before touching operational data.
 
+## Customer Memory Layer
+
+CRM owns customer graph, consent, customer memory, segments, and the semantic-query foundation. It does not own POS execution, SKUMS product taxonomy, or loyalty economics.
+
+The event and projection foundation is:
+
+- `crm_events`: idempotent source-system facts.
+- `crm_external_links`: external identity links.
+- `crm_customer_facts`: normalized customer timeline facts.
+- `crm_consent_records`: consent and contactability history.
+- `crm_customer_profiles`: computed profile read model.
+- `crm_segment_memberships`: segment projections.
+- `crm_metric_definitions`: generic metric registry.
+
+Every source event should carry `event_id`, `event_type`, `workspace_id`, `source_system`, `occurred_at`, `idempotency_key`, `actor`, `subject`, `context`, `payload`, and `schema_version`.
+
 ## Minimal Customer Fields
 
 The first customer contract mirrors the common data a Shopify merchant already understands:

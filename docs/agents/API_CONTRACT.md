@@ -4,6 +4,68 @@ This file is the agent-facing source of truth for current HTTP API routes. Updat
 
 ## Routes
 
+### `POST /api/v1/events`
+
+Accepts source-system facts from POS, loyalty, ecommerce, partner channels, or future integration workers.
+
+Payload:
+
+```json
+{
+  "eventId": "pos_sale_123",
+  "eventType": "pos.sale.completed",
+  "workspaceId": "optional uuid for Supabase writes",
+  "sourceSystem": "pos",
+  "occurredAt": "2026-06-11T04:00:00.000Z",
+  "idempotencyKey": "pos:store_001:txn_123",
+  "actor": { "type": "system", "id": "pos" },
+  "subject": {
+    "customerKey": "crm:person_123",
+    "externalCustomerRefs": [
+      { "system": "pos", "id": "cust_123" }
+    ]
+  },
+  "context": {
+    "channel": "pos",
+    "country": "SG",
+    "currency": "SGD"
+  },
+  "payload": {},
+  "schemaVersion": 1
+}
+```
+
+Rules:
+
+- `eventId`, `sourceSystem`, and `idempotencyKey` are required.
+- `occurredAt` must be an ISO datetime.
+- Without Supabase credentials or `workspaceId`, the route returns a demo accepted response.
+- With Supabase credentials, the route upserts into `crm_events` by `(workspace_id, source_system, idempotency_key)`.
+
+### `GET /api/v1/people/[person_id]`
+
+Returns a customer/person read model with identity, attributes, consent summary, and profile context.
+
+Fallback behavior:
+
+- Without Supabase credentials or when `person_id` is not a UUID, the route returns the demo customer profile.
+
+### `GET /api/v1/people/[person_id]/timeline`
+
+Returns a customer timeline from `crm_customer_facts`.
+
+Fallback behavior:
+
+- Without Supabase credentials or when no persisted facts are available, the route returns a demo timeline.
+
+### `GET /api/v1/people/[person_id]/computed-profile`
+
+Returns computed customer profiles from `crm_customer_profiles`, including activity, value, affinity, intent, metric values, provenance, and sensitivity level.
+
+Fallback behavior:
+
+- Without Supabase credentials or when no computed profile exists, the route returns the demo computed profile.
+
 ### `GET /api/crm/bootstrap`
 
 Loads the current CRM operating surface.
