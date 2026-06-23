@@ -82,12 +82,33 @@ create table public.crm_entities (
   attributes jsonb not null default '{}'::jsonb,
   tags text[] not null default '{}',
   source text not null default 'manual',
-  search_text text generated always as (
-    lower(label || ' ' || coalesce(attributes::text, '') || ' ' || array_to_string(tags, ' '))
-  ) stored,
+  search_text text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create or replace function public.crm_refresh_entity_search_text()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.search_text := lower(
+    coalesce(new.label, '') || ' ' ||
+    coalesce(new.attributes::text, '') || ' ' ||
+    coalesce(array_to_string(new.tags, ' '), '')
+  );
+
+  return new;
+end;
+$$;
+
+revoke all on function public.crm_refresh_entity_search_text() from public;
+
+create trigger crm_entities_refresh_search_text
+  before insert or update of label, attributes, tags
+  on public.crm_entities
+  for each row
+  execute function public.crm_refresh_entity_search_text();
 
 create index crm_entities_workspace_type_idx on public.crm_entities(workspace_id, type);
 create index crm_entities_external_ids_idx on public.crm_entities using gin(external_ids);

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { GitBranch, KeyRound, Search, UserRound } from '@lucide/vue'
+import { Building2, GitBranch, KeyRound, LogOut, Search, UserRound } from '@lucide/vue'
 
 const route = useRoute()
 const runtime = useRuntimeConfig()
 const query = ref('')
+const { isConfigured, refreshSession, signOut, startAuthListener, user } = useCrmAuth()
+const { loadWorkspaces, primaryWorkspace, requiresSetup } = useCrmWorkspaceAccess()
 
 const pageTitle = computed(() => {
   const labels: Record<string, string> = {
@@ -18,12 +20,27 @@ const pageTitle = computed(() => {
     '/docs/skills': 'Agent Skills',
     '/integrations': 'Integrations',
     '/pricing': 'Hosted Plan',
+    '/setup': 'Company Setup',
     '/settings': 'Workspace Settings',
     '/login': 'Sign In'
   }
 
   return labels[route.path] || 'Open Spine CRM'
 })
+
+onMounted(async () => {
+  startAuthListener()
+  await refreshSession()
+
+  if (user.value) {
+    await loadWorkspaces()
+  }
+})
+
+async function handleSignOut() {
+  await signOut()
+  await navigateTo('/')
+}
 </script>
 
 <template>
@@ -44,9 +61,28 @@ const pageTitle = computed(() => {
       <a class="icon-button" href="https://github.com/wytanj/crm" target="_blank" rel="noreferrer" title="Repository">
         <GitBranch :size="18" />
       </a>
-      <NuxtLink class="user-button" to="/login">
+      <NuxtLink
+        v-if="user"
+        class="workspace-button"
+        :to="requiresSetup ? '/setup' : '/settings'"
+        :title="requiresSetup ? 'Set up company' : 'Workspace settings'"
+      >
+        <Building2 :size="18" />
+        <span>
+          <strong>{{ primaryWorkspace?.name || 'Setup company' }}</strong>
+          <small>{{ primaryWorkspace?.role || 'owner' }}</small>
+        </span>
+      </NuxtLink>
+      <button v-if="user" class="icon-button" type="button" title="Sign out" @click="handleSignOut">
+        <LogOut :size="18" />
+      </button>
+      <NuxtLink v-else-if="isConfigured" class="user-button" to="/login">
         <UserRound :size="18" />
         <span>Sign in</span>
+      </NuxtLink>
+      <NuxtLink v-else class="user-button" to="/graph">
+        <UserRound :size="18" />
+        <span>Demo mode</span>
       </NuxtLink>
     </div>
   </header>

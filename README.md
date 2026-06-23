@@ -8,6 +8,7 @@ A headless open CRM for B2C and B2B customer data. The core is designed as a gra
 - API layer first: UI, integrations, and agents should read/write through stable API contracts instead of being coupled to page state.
 - Open source by default: self-host with Supabase keys and the SQL migration in `supabase/migrations`.
 - Hosted plan optional: hosted workspaces are free for now, with a planned $9/month tier for managed hosting and integrations.
+- Company first: hosted users sign in, create a company workspace, then add team members and agents under workspace-scoped roles.
 - Schema-flexible: minimal Shopify-like customer fields are provided, but teams and agents can define custom entity schemas and fields.
 
 ## Agent Docs
@@ -22,12 +23,16 @@ cp .env.example .env
 npm run dev
 ```
 
-Apply `supabase/migrations/0001_headless_crm.sql` to your Supabase project, then set:
+Apply every SQL file in `supabase/migrations` to your Supabase project, then set:
 
 ```bash
 NUXT_PUBLIC_SUPABASE_URL=...
 NUXT_PUBLIC_SUPABASE_KEY=...
+SUPABASE_DB_URL=...
+# Optional alternative to SUPABASE_DB_URL for server-side Data API access.
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
+
+The frontend uses the public Supabase key for Auth only. CRM data reads and writes go through workspace-scoped Nuxt API routes backed by `SUPABASE_DB_URL` or a server-only Supabase secret/service key, so user permissions can be tightened without changing the browser contract.
 
 Hosted billing can run in demo mode for local development. To enable real checkout, provide Stripe keys and wire the `/api/billing/checkout` handler to your Stripe account.

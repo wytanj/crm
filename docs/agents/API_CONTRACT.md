@@ -39,8 +39,8 @@ Rules:
 
 - `eventId`, `sourceSystem`, and `idempotencyKey` are required.
 - `occurredAt` must be an ISO datetime.
-- Without Supabase credentials or `workspaceId`, the route returns a demo accepted response.
-- With Supabase credentials, the route upserts into `crm_events` by `(workspace_id, source_system, idempotency_key)`.
+- Without Supabase server credentials or `workspaceId`, the route returns a demo accepted response.
+- With Supabase server credentials, the route upserts into `crm_events` by `(workspace_id, source_system, idempotency_key)`.
 
 ### `GET /api/v1/people/[person_id]`
 
@@ -66,24 +66,127 @@ Fallback behavior:
 
 - Without Supabase credentials or when no computed profile exists, the route returns the demo computed profile.
 
+### `GET /api/v1/people/[person_id]/counter-profile`
+
+Returns a POS-safe projection of installed profile-pack fields for one person.
+
+Query:
+
+- `workspaceId`: required for Supabase-backed reads.
+
+Rules:
+
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- The signed-in user must be a member of the workspace.
+- The route verifies the person belongs to the supplied workspace.
+- Only fields with `pos_visible = true` are returned.
+- Reported risk signals may produce advisory `warnings`; the route does not block checkout.
+- Without Supabase credentials, `workspaceId`, or a UUID person id, the route returns the demo counter profile.
+
+### `PATCH /api/v1/people/[person_id]/profile-fields`
+
+Updates pack-scoped profile fields for one person and writes provenance facts.
+
+Payload:
+
+```json
+{
+  "workspaceId": "workspace uuid",
+  "packKey": "skincare",
+  "fields": {
+    "skin_type": "Combination",
+    "skin_concerns": ["Acne", "Pigmentation"],
+    "reported_sensitivities": ["retinol", "fragrance"]
+  },
+  "sourceSystem": "crm_ui"
+}
+```
+
+Rules:
+
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- The signed-in user must be `owner`, `admin`, or `member`.
+- The route verifies the person belongs to the supplied workspace.
+- The profile pack must be installed and active in that workspace.
+- Field keys and values are validated against `crm_field_definitions`.
+- Current state is written to `crm_entities.attributes.profile_packs`.
+- Each changed field writes a `crm_customer_facts` row with `fact_type = customer_profile`.
+
 ### `GET /api/crm/bootstrap`
 
 Loads the current CRM operating surface.
 
+Query:
+
+- `workspaceId`: optional UUID. Required for Supabase-backed workspace data.
+
+Auth:
+
+- Supabase mode with `workspaceId` requires `Authorization: Bearer <access_token>`.
+- The user must be a member of the requested workspace.
+- Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
+
 Response shape:
 
 - `mode`: `demo` or `supabase`.
+- `graph.workspace`: current workspace summary when Supabase data is loaded.
 - `graph.metrics`: dashboard metrics.
 - `graph.entities`: graph entities.
 - `graph.relationships`: typed edges between entities.
 - `graph.customerFields`: base and custom field definitions.
+- `graph.profilePacks`: installable and installed profile-pack definitions.
 - `graph.integrationBacklog`: planned or connected integration surfaces.
 - `graph.proposals`: agent proposal summaries.
 
 Fallback behavior:
 
-- If Supabase service credentials are missing, this route returns demo data.
-- If Supabase returns an entity or relationship error, this route returns demo data with `warning`.
+- If Supabase server credentials are missing, this route returns demo data.
+- If Supabase is configured but no `workspaceId` is provided, this route returns demo data with `warning`.
+- If Supabase returns a workspace, entity, relationship, field, source, or proposal error, this route returns demo data with `warning`.
+
+### `GET /api/crm/workspaces`
+
+Returns the signed-in user's available CRM workspaces and whether company setup is required.
+
+Auth:
+
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
+
+Response shape:
+
+- `mode`: `demo` or `supabase`.
+- `requiresSetup`: `true` when the user has no workspace membership.
+- `user`: signed-in Supabase user summary.
+- `workspaces`: workspace summaries with `id`, `name`, `slug`, `role`, `plan`, and `hostingMode`.
+
+Fallback behavior:
+
+- Without Supabase server credentials, this route returns a demo workspace.
+
+### `POST /api/crm/workspaces`
+
+Creates the master company workspace for a hosted user.
+
+Payload:
+
+```json
+{
+  "companyName": "Acme Retail",
+  "slug": "acme-retail",
+  "plan": "hosted_growth"
+}
+```
+
+Rules:
+
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- The creating user becomes `owner` in `crm_workspace_members`.
+- Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
+- The route seeds core person fields in `crm_field_definitions`.
+- The route seeds planned integration/source rows in `crm_data_sources`.
+- The route creates trial subscription, billing-customer boundary, and audit-event records.
+- Without Supabase server credentials, the route returns a demo workspace response.
 
 ### `GET /api/graph/search`
 
@@ -92,11 +195,62 @@ Searches graph entities by label, tags, and normalized attributes.
 Query:
 
 - `q`: optional string. Whitespace is trimmed.
+- `workspaceId`: optional UUID. Required for Supabase-backed search.
+
+Auth:
+
+- Supabase mode with `workspaceId` requires `Authorization: Bearer <access_token>`.
+- The user must be a member of the requested workspace.
+- Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
 
 Fallback behavior:
 
-- Without Supabase credentials, search runs against demo graph data.
+- Without Supabase server credentials or without `workspaceId`, search runs against demo graph data.
 - Empty `q` returns the first demo entities.
+
+### `GET /api/profile-packs`
+
+Lists registered profile packs, including install state and field definitions for the requested workspace.
+
+Query:
+
+- `workspaceId`: optional in demo mode, required for Supabase-backed install state.
+
+Rules:
+
+- Supabase mode with `workspaceId` requires `Authorization: Bearer <access_token>`.
+- The signed-in user must be a workspace member.
+- Demo mode returns the built-in pack registry with skincare installed for Ava Tan and `fashion_fit` as a non-skincare fixture.
+
+### `GET /api/profile-packs/[pack_key]`
+
+Returns one dynamic profile-pack definition.
+
+Rules:
+
+- `pack_key` is dynamic; route logic must not branch only for skincare.
+- Supabase mode with `workspaceId` returns installed workspace field metadata when present.
+- Without workspace data, registered packs are returned from the built-in registry.
+
+### `POST /api/profile-packs/[pack_key]/install`
+
+Installs a registered profile pack into a workspace.
+
+Payload:
+
+```json
+{
+  "workspaceId": "workspace uuid"
+}
+```
+
+Rules:
+
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- The signed-in user must be `owner` or `admin`.
+- The install is idempotent by `(workspace_id, key)` for packs and by packed field scope for field definitions.
+- The route writes a `profile_pack.installed` audit event.
+- Demo mode returns an accepted installed response without persistence.
 
 ### `POST /api/schema/fields`
 
@@ -112,16 +266,26 @@ Payload:
   "label": "Preferred channel",
   "type": "text",
   "required": false,
-  "origin": "agent"
+  "origin": "agent",
+  "packKey": "optional_pack_key",
+  "sensitivityLevel": "internal",
+  "posVisible": false,
+  "cashierEditable": false,
+  "marketingUsable": false,
+  "enumValues": []
 }
 ```
 
 Rules:
 
 - `key` must match `^[a-z][a-z0-9_]*$`.
-- `type` must be one of `text`, `number`, `date`, `boolean`, `email`, `phone`, `json`, or `enum`.
+- `type` must be one of `text`, `number`, `date`, `boolean`, `email`, `phone`, `json`, `enum`, `single_select`, `multi_select`, or `tag_list`.
 - `origin` defaults to `custom` and may be `agent` when an agent proposes the field.
-- Without Supabase credentials or `workspaceId`, the route returns a demo field response.
+- `packKey`, visibility, sensitivity, UI contexts, and enum values are optional metadata for profile-pack fields.
+- Without Supabase server credentials or `workspaceId`, the route returns a demo field response.
+- Supabase mode requires `Authorization: Bearer <access_token>`.
+- The signed-in user must be `owner` or `admin` for the target workspace.
+- Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
 
 ### `POST /api/billing/checkout`
 

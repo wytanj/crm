@@ -3,7 +3,8 @@ import {
   checkoutPayloadSchema,
   crmEventPayloadSchema,
   graphSearchQuerySchema,
-  schemaFieldPayloadSchema
+  schemaFieldPayloadSchema,
+  workspaceSetupPayloadSchema
 } from '../server/utils/contracts'
 
 describe('agent schema extension contract', () => {
@@ -21,6 +22,30 @@ describe('agent schema extension contract', () => {
       entityType: 'person',
       key: 'preferred_channel',
       origin: 'agent'
+    })
+  })
+
+  it('accepts pack-scoped profile field metadata', () => {
+    const payload = schemaFieldPayloadSchema.parse({
+      entityType: 'person',
+      key: 'skin_concerns',
+      label: 'Skin concerns',
+      type: 'multi_select',
+      required: false,
+      origin: 'custom',
+      packKey: 'skincare',
+      sensitivityLevel: 'internal',
+      posVisible: true,
+      cashierEditable: true,
+      marketingUsable: true,
+      enumValues: ['Acne', 'Pigmentation']
+    })
+
+    expect(payload).toMatchObject({
+      packKey: 'skincare',
+      type: 'multi_select',
+      posVisible: true,
+      enumValues: ['Acne', 'Pigmentation']
     })
   })
 
@@ -44,6 +69,16 @@ describe('agent schema extension contract', () => {
       type: 'text'
     })).toThrow()
   })
+
+  it('rejects unsafe pack keys', () => {
+    expect(() => schemaFieldPayloadSchema.parse({
+      entityType: 'person',
+      key: 'skin_type',
+      label: 'Skin type',
+      type: 'single_select',
+      packKey: 'Skincare'
+    })).toThrow()
+  })
 })
 
 describe('API payload contracts', () => {
@@ -61,6 +96,28 @@ describe('API payload contracts', () => {
 
   it('normalizes graph search input by trimming whitespace', () => {
     expect(graphSearchQuerySchema.parse({ q: '  ava  ' }).q).toBe('ava')
+  })
+
+  it('accepts hosted workspace setup for a master user company', () => {
+    const payload = workspaceSetupPayloadSchema.parse({
+      companyName: 'Acme Retail',
+      slug: 'acme-retail',
+      plan: 'hosted_growth'
+    })
+
+    expect(payload).toMatchObject({
+      companyName: 'Acme Retail',
+      slug: 'acme-retail',
+      plan: 'hosted_growth'
+    })
+  })
+
+  it('rejects unsafe workspace setup slugs', () => {
+    expect(() => workspaceSetupPayloadSchema.parse({
+      companyName: 'Acme Retail',
+      slug: 'Acme Retail!',
+      plan: 'hosted_growth'
+    })).toThrow()
   })
 
   it('accepts the cross-repo event contract with idempotency', () => {

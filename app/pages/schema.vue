@@ -1,6 +1,20 @@
 <script setup lang="ts">
-const { data } = await useCrmBootstrap()
+const { refreshSession, startAuthListener, user } = useCrmAuth()
+const { loadWorkspaces, primaryWorkspace } = useCrmWorkspaceAccess()
+const workspaceId = computed(() => primaryWorkspace.value?.id)
+const { data, refresh } = await useCrmBootstrap(workspaceId)
 const fields = computed(() => data.value?.graph.customerFields || [])
+const profilePacks = computed(() => data.value?.graph.profilePacks || [])
+
+onMounted(async () => {
+  startAuthListener()
+  await refreshSession()
+
+  if (user.value) {
+    await loadWorkspaces()
+    await refresh()
+  }
+})
 </script>
 
 <template>
@@ -12,6 +26,11 @@ const fields = computed(() => data.value?.graph.customerFields || [])
       </div>
       <NuxtLink class="secondary-button" to="/api-console">View API</NuxtLink>
     </div>
-    <SchemaDesigner :fields="fields" />
+    <SchemaDesigner
+      :fields="fields"
+      :profile-packs="profilePacks"
+      :workspace-id="workspaceId"
+      @pack-installed="() => refresh()"
+    />
   </div>
 </template>

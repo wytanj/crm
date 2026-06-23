@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { ArrowRight, Building2, Mail, PackageCheck, ShoppingBag, Ticket, UserRound } from '@lucide/vue'
-import type { CrmEntity, CrmRelationship } from '~/types/crm'
+import type { CrmEntity, CrmProfilePackDefinition, CrmRelationship } from '~/types/crm'
 
 const props = defineProps<{
   entities: CrmEntity[]
   relationships: CrmRelationship[]
+  profilePacks: CrmProfilePackDefinition[]
+  workspaceId?: string
 }>()
 
 const selectedId = ref(props.entities[0]?.id)
 
 const selected = computed(() => props.entities.find((entity) => entity.id === selectedId.value) || props.entities[0])
+
+const visibleAttributes = computed(() => {
+  const attributes = selected.value?.attributes || {}
+
+  return Object.fromEntries(Object.entries(attributes).filter(([key]) => key !== 'profile_packs'))
+})
 
 const iconMap = {
   person: UserRound,
@@ -73,11 +81,17 @@ function relationshipLabel(relationship: CrmRelationship) {
         <span v-for="tag in selected.tags" :key="tag">{{ tag }}</span>
       </div>
       <dl class="attribute-list">
-        <template v-for="(value, key) in selected.attributes" :key="key">
+        <template v-for="(value, key) in visibleAttributes" :key="key">
           <dt>{{ key.toString().replaceAll('_', ' ') }}</dt>
           <dd>{{ value }}</dd>
         </template>
       </dl>
+      <ProfilePackPanel
+        v-if="selected.type === 'person'"
+        :entity="selected"
+        :packs="profilePacks"
+        :workspace-id="workspaceId"
+      />
       <div class="code-panel">
         <pre>{{ JSON.stringify({ id: selected.id, type: selected.type, externalIds: selected.externalIds }, null, 2) }}</pre>
       </div>

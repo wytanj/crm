@@ -1,4 +1,5 @@
 import type { CrmGraphResponse } from '../../app/types/crm'
+import { cloneProfilePack, profilePackDefinitions } from './profile-packs'
 
 export const shopifyCustomerFields = [
   { key: 'email', label: 'Email', type: 'email', required: true, origin: 'core' },
@@ -39,7 +40,15 @@ export const demoCrmGraph: CrmGraphResponse = {
         total_spent: 2840,
         currency: 'SGD',
         orders_count: 18,
-        lifecycle_stage: 'loyal'
+        lifecycle_stage: 'loyal',
+        profile_packs: {
+          skincare: {
+            skin_type: 'Combination',
+            skin_concerns: ['Acne', 'Pigmentation'],
+            reported_sensitivities: ['retinol', 'fragrance'],
+            reported_sensitivity_note: 'Customer reports irritation with strong actives.'
+          }
+        }
       },
       createdAt: '2026-04-04T09:20:00.000Z',
       updatedAt: '2026-05-28T11:10:00.000Z'
@@ -115,7 +124,11 @@ export const demoCrmGraph: CrmGraphResponse = {
       source: 'agent_resolution'
     }
   ],
-  customerFields: shopifyCustomerFields.map((field) => ({ ...field })),
+  customerFields: [
+    ...shopifyCustomerFields.map((field) => ({ ...field })),
+    ...profilePackDefinitions.flatMap((pack) => pack.installed ? pack.fields.map((field) => ({ ...field })) : [])
+  ],
+  profilePacks: profilePackDefinitions.map((pack) => cloneProfilePack(pack)),
   integrationBacklog: [
     'Shopify customer and order sync',
     'POS order and loyalty sync',

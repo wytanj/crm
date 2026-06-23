@@ -8,6 +8,8 @@ kicker: Model
 
 Open Spine CRM starts with enough structure to model common B2C and B2B customer data without forcing a rigid CRM object model.
 
+Hosted users set up a company workspace first. The company maps to `crm_workspaces`, and the creating user becomes the initial `owner` in `crm_workspace_members`; later humans, agents, and integrations are permissioned inside that workspace.
+
 | Entity type | Purpose |
 | --- | --- |
 | `person` | Individual customer, contact, lead, buyer, or support requester. |
@@ -70,6 +72,23 @@ The proposal should include:
 
 After approval, the field definition becomes part of the workspace model and future imports can map into it.
 
+## Profile Packs
+
+Profile packs are workspace-scoped bundles of customer fields. They let a merchant install domain-specific profile data without changing the core customer table or creating an industry-specific UI.
+
+The current foundation uses:
+
+| Surface | Purpose |
+| --- | --- |
+| `crm_profile_packs` | Installed pack registry for a workspace. |
+| `crm_field_definitions.pack_key` | Pack-scoped field definitions and validation metadata. |
+| `crm_entities.attributes.profile_packs` | Current editable values for a person. |
+| `crm_customer_facts` | Provenance timeline for profile-field updates. |
+
+Pack fields can declare whether they are POS-visible, cashier-editable, marketing-usable, and which sensitivity level applies. POS, support, campaigns, exports, and agents should consume context-specific projections rather than raw values when a narrower surface is available.
+
+`skincare` is the first installed demo pack. `fashion_fit` is included as a non-skincare fixture to prove the same model can support another vertical.
+
 ## Customer Memory Tables
 
 The CRM acts as the customer graph, consent, memory, segments, and semantic-query foundation. It should not own POS execution, product taxonomy, or loyalty economics.
@@ -83,6 +102,8 @@ The CRM acts as the customer graph, consent, memory, segments, and semantic-quer
 | `crm_customer_profiles` | Computed activity, value, affinity, intent, and metric read model. |
 | `crm_segment_memberships` | Segment membership projections with score and reason. |
 | `crm_metric_definitions` | Workspace-owned generic metric registry. |
+
+The hosted Nuxt UI uses API routes for CRM reads and writes instead of direct browser table access. Server persistence can use the Supabase pooler connection string or a server-only Supabase key; row and action permissions stay workspace-scoped.
 
 ## Event Contract
 

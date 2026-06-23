@@ -12,6 +12,10 @@ Related tables:
 - `crm_billing_customers`: hosted billing customer records.
 - `crm_subscriptions`: open-source or hosted subscription state.
 
+Hosted onboarding creates `crm_workspaces` first, then inserts the creator as `owner` in `crm_workspace_members`. Later CRM users, agents, and integration actors should be added under this workspace boundary rather than as global tenants.
+
+The browser should not rely on direct table access for CRM data yet. Current hosted UI reads and writes through Nuxt API routes using `SUPABASE_DB_URL` or a server-only Supabase key; `0003_data_api_service_role_grants.sql` explicitly grants the service role Data API access for the CRM tables created in earlier migrations.
+
 ## Entity Spine
 
 `crm_entities` stores the nodes of the graph:
@@ -83,10 +87,56 @@ Schema field properties:
 - `required`
 - `origin`
 - `enum_values`
+- `pack_key`
+- `description`
+- `help_text`
+- `sensitivity_level`
+- `pos_visible`
+- `cashier_editable`
+- `marketing_usable`
+- `ui_contexts`
+- `sort_order`
+- `metadata`
 
 Allowed `origin` values are `core`, `integration`, `custom`, and `agent`.
 
 Use `crm_agent_proposals` for schema suggestions that require review before execution.
+
+## Profile Packs
+
+Profile packs let a workspace install domain-specific customer fields without changing the CRM core tables or forking the UI.
+
+The pack layer is vendor agnostic:
+
+- A pack is not owned by POS, Shopify, skincare, or any other source system.
+- Each pack is workspace-scoped through `crm_profile_packs`.
+- Each packed field is represented through `crm_field_definitions.pack_key`.
+- Current editable values live in `crm_entities.attributes.profile_packs`.
+- Provenance and timeline records live in `crm_customer_facts`.
+
+`crm_profile_packs` stores:
+
+- `workspace_id`
+- `key`
+- `label`
+- `description`
+- `vertical`
+- `status`
+- `install_mode`
+- `metadata`
+
+Packed field uniqueness is scoped by `(workspace_id, entity_type, pack_key, key)`. Base fields without a `pack_key` keep their own uniqueness boundary. This allows different packs to reuse ordinary field keys like `notes`, `goals`, or `preferences` without colliding.
+
+The first built-in pack is `skincare`, with self-reported skin type, concerns, sensitivities, and a sensitivity note. The non-skincare `fashion_fit` fixture proves the same contract can represent fit preferences and size context.
+
+Sensitivity and projection flags are part of the data contract, not only UI labels:
+
+- `pos_visible`: safe for counter-profile projections.
+- `cashier_editable`: editable from operational counter workflows.
+- `marketing_usable`: eligible for campaign/segment use.
+- `sensitivity_level`: `public`, `internal`, `confidential`, or `restricted`.
+
+POS and other clients should consume context-specific projections such as `/api/v1/people/[person_id]/counter-profile` instead of reading raw field definitions directly.
 
 ## Customer Memory Foundation
 

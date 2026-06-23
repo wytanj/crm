@@ -1,36 +1,21 @@
 <script setup lang="ts">
 import { LogIn } from '@lucide/vue'
-import { createClient } from '@supabase/supabase-js'
 
 const email = ref('')
 const sent = ref(false)
 const error = ref('')
-const runtime = useRuntimeConfig()
+const { isConfigured, signInWithOtp } = useCrmAuth()
 
 async function signIn() {
   error.value = ''
 
-  if (!runtime.public.supabaseUrl || !runtime.public.supabaseKey) {
+  if (!isConfigured.value) {
     sent.value = true
     return
   }
 
   try {
-    const supabase = createClient(
-      String(runtime.public.supabaseUrl),
-      String(runtime.public.supabaseKey)
-    )
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email: email.value,
-      options: {
-        emailRedirectTo: `${runtime.public.siteUrl}/confirm`
-      }
-    })
-
-    if (authError) {
-      throw authError
-    }
-
+    await signInWithOtp(email.value)
     sent.value = true
   } catch (signInError) {
     error.value = signInError instanceof Error ? signInError.message : 'Unable to send sign-in link.'
@@ -53,6 +38,7 @@ async function signIn() {
       </button>
       <p v-if="sent" class="notice-text">Check your email for the sign-in link. In demo mode this confirms the auth flow shape.</p>
       <p v-if="error" class="form-error">{{ error }}</p>
+      <NuxtLink class="secondary-button" to="/setup">Set up company after sign-in</NuxtLink>
     </form>
   </div>
 </template>

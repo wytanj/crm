@@ -16,3 +16,20 @@ export function useSupabaseAdmin() {
     }
   })
 }
+
+export function useSupabaseAuthClient() {
+  const config = useRuntimeConfig()
+  const url = config.public.supabaseUrl
+  const key = config.public.supabaseKey
+
+  if (!url || !key) {
+    return null
+  }
+
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { demoCrmGraph, shopifyCustomerFields } from '../server/utils/demo-crm'
+import { createCounterProfile, profilePackDefinitions } from '../server/utils/profile-packs'
 
 describe('base CRM graph contract', () => {
   it('ships the minimal commerce customer fields agents can depend on', () => {
@@ -50,6 +51,60 @@ describe('base CRM graph contract', () => {
   it('includes agent proposal states for approval-first workflows', () => {
     expect(demoCrmGraph.proposals.map((proposal) => proposal.status)).toEqual(
       expect.arrayContaining(['draft', 'needs_approval', 'approved'])
+    )
+  })
+
+  it('ships skincare as an installed profile pack without making it core schema', () => {
+    const ava = demoCrmGraph.entities.find((entity) => entity.id === 'person_001')
+    const skincarePack = demoCrmGraph.profilePacks.find((pack) => pack.key === 'skincare')
+
+    expect(skincarePack).toMatchObject({
+      installed: true,
+      fields: expect.arrayContaining([
+        expect.objectContaining({
+          key: 'reported_sensitivities',
+          packKey: 'skincare',
+          sensitivityLevel: 'confidential',
+          marketingUsable: false
+        })
+      ])
+    })
+    expect(ava?.attributes['profile_packs']).toMatchObject({
+      skincare: {
+        skin_type: 'Combination',
+        reported_sensitivities: ['retinol', 'fragrance']
+      }
+    })
+  })
+
+  it('keeps a non-skincare pack fixture in the same generic registry', () => {
+    const fashionPack = profilePackDefinitions.find((pack) => pack.key === 'fashion_fit')
+
+    expect(fashionPack).toMatchObject({
+      installed: false,
+      fields: expect.arrayContaining([
+        expect.objectContaining({
+          key: 'preferred_fit',
+          type: 'single_select'
+        })
+      ])
+    })
+  })
+
+  it('counter profile only projects POS-visible profile fields and advisory warnings', () => {
+    const ava = demoCrmGraph.entities.find((entity) => entity.id === 'person_001')
+    expect(ava).toBeTruthy()
+
+    const counterProfile = createCounterProfile(ava!, demoCrmGraph.profilePacks)
+
+    expect(counterProfile.packs.skincare.fields).toMatchObject({
+      skin_type: 'Combination',
+      reported_sensitivities: ['retinol', 'fragrance']
+    })
+    expect(counterProfile.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'reported_sensitivity', label: 'Retinol' })
+      ])
     )
   })
 })

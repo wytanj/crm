@@ -3,6 +3,7 @@ import {
   Blocks,
   Bot,
   Braces,
+  Building2,
   CreditCard,
   Database,
   FileText,
@@ -15,6 +16,7 @@ import {
 const navItems = [
   { label: 'Home', to: '/', icon: LayoutDashboard },
   { label: 'Graph', to: '/graph', icon: Database },
+  { label: 'Setup', to: '/setup', icon: Building2 },
   { label: 'Schema', to: '/schema', icon: Braces },
   { label: 'API', to: '/api-console', icon: GitFork },
   { label: 'Agents', to: '/agents', icon: Bot },

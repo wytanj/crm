@@ -43,7 +43,9 @@ const envRows = [
           <Copy :size="20" />
         </div>
         <div class="code-panel">
-          <pre>supabase/migrations/0001_headless_crm.sql</pre>
+        <pre>supabase/migrations/0001_headless_crm.sql
+supabase/migrations/0002_customer_memory_foundation.sql
+supabase/migrations/0003_data_api_service_role_grants.sql</pre>
         </div>
         <p class="muted-text">The migration includes workspace membership, graph entities, relationships, custom field definitions, integration accounts, billing records, proposals, approvals, execution logs, and audit events.</p>
       </article>

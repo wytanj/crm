@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   modules: ['@nuxt/content'],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    supabaseDatabaseUrl: process.env.SUPABASE_DB_URL,
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     public: {

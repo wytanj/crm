@@ -8,8 +8,8 @@ kicker: API
 
 The API can run in two modes:
 
-- `demo`: returned when Supabase credentials are missing or demo fallback data is used.
-- `supabase`: returned when service credentials are configured and database reads succeed.
+- `demo`: returned when Supabase server credentials are missing or demo fallback data is used.
+- `supabase`: returned when `SUPABASE_DB_URL` or server-only Supabase credentials are configured and database reads succeed.
 
 Agents and integrations should always check `mode` before assuming writes persisted to a real workspace.
 
@@ -58,9 +58,36 @@ Returns customer facts as a timeline. The persisted source is `crm_customer_fact
 
 Returns the computed customer profile, including activity, value, affinity, intent, metric values, provenance, and sensitivity level.
 
+## GET /api/v1/people/[person_id]/counter-profile
+
+Returns the POS-safe profile projection for one person. Supabase-backed reads require `workspaceId`, a bearer access token, and workspace membership. Only fields marked `pos_visible` are returned. Advisory warnings are informational and should not block checkout by default.
+
+## PATCH /api/v1/people/[person_id]/profile-fields
+
+Updates installed pack fields for one person.
+
+Payload:
+
+```json
+{
+  "workspaceId": "workspace uuid",
+  "packKey": "skincare",
+  "fields": {
+    "skin_type": "Combination",
+    "skin_concerns": ["Acne", "Pigmentation"],
+    "reported_sensitivities": ["retinol", "fragrance"]
+  },
+  "sourceSystem": "crm_ui"
+}
+```
+
+The route validates fields against the installed pack, updates `crm_entities.attributes.profile_packs`, and writes `crm_customer_facts` rows for provenance.
+
 ## GET /api/crm/bootstrap
 
 Loads the CRM operating surface for the current workspace.
+
+Supabase-backed calls pass `workspaceId` and `Authorization: Bearer <access_token>`. The user must be a member of that workspace. Without a workspace ID, the route stays in demo mode. Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
 
 Returns:
 
@@ -69,10 +96,40 @@ Returns:
 - entity records
 - relationship records
 - entity type and field definitions
+- profile pack definitions
 - integration backlog
 - pending agent proposals
 
 Use this route to hydrate dashboards, agent context windows, and setup screens.
+
+## GET /api/crm/workspaces
+
+Returns the signed-in user's CRM workspaces and whether setup is required.
+
+Response fields:
+
+- `mode`
+- `requiresSetup`
+- `user`
+- `workspaces`
+
+In Supabase mode this route requires a bearer access token. In demo mode it returns a demo workspace. Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
+
+## POST /api/crm/workspaces
+
+Creates the hosted user's master company workspace.
+
+Payload:
+
+```json
+{
+  "companyName": "Acme Retail",
+  "slug": "acme-retail",
+  "plan": "hosted_growth"
+}
+```
+
+The route creates the workspace, owner membership, initial field definitions, planned data sources, trial subscription boundary, billing-customer boundary, and audit event. It is the first step after hosted sign-in.
 
 ## GET /api/graph/search
 
@@ -83,12 +140,25 @@ Query parameters:
 | Parameter | Type | Notes |
 | --- | --- | --- |
 | `q` | string | Optional search text. Whitespace is trimmed before execution. |
+| `workspaceId` | uuid | Required for Supabase-backed workspace search. |
 
 Typical use:
 
 ```http
 GET /api/graph/search?q=shopify
 ```
+
+## GET /api/profile-packs
+
+Lists registered profile packs with workspace install state. Demo mode returns the built-in registry.
+
+## GET /api/profile-packs/[pack_key]
+
+Returns one dynamic pack definition. `skincare` is the first fixture, but route logic is pack-key driven.
+
+## POST /api/profile-packs/[pack_key]/install
+
+Installs a registered pack into a workspace. Supabase-backed installs require a bearer token and `owner` or `admin` role. The operation is idempotent and writes an audit event.
 
 ## POST /api/schema/fields
 
@@ -98,12 +168,19 @@ Payload:
 
 ```json
 {
+  "workspaceId": "workspace uuid",
   "entityType": "person",
   "key": "preferred_channel",
   "label": "Preferred channel",
   "type": "text",
   "required": false,
-  "origin": "agent"
+  "origin": "agent",
+  "packKey": "optional_pack_key",
+  "sensitivityLevel": "internal",
+  "posVisible": false,
+  "cashierEditable": false,
+  "marketingUsable": false,
+  "enumValues": []
 }
 ```
 
@@ -112,9 +189,16 @@ Allowed field types:
 - `text`
 - `number`
 - `boolean`
+- `email`
+- `phone`
 - `date`
 - `json`
-- `reference`
+- `enum`
+- `single_select`
+- `multi_select`
+- `tag_list`
+
+Supabase-backed writes require a bearer access token and an `owner` or `admin` workspace role. Server persistence uses `SUPABASE_DB_URL` when present, otherwise `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## POST /api/billing/checkout
 
