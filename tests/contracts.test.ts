@@ -3,6 +3,7 @@ import {
   checkoutPayloadSchema,
   crmEventPayloadSchema,
   graphSearchQuerySchema,
+  returnEligibilityPayloadSchema,
   schemaFieldPayloadSchema,
   workspaceSetupPayloadSchema
 } from '../server/utils/contracts'
@@ -141,5 +142,21 @@ describe('API payload contracts', () => {
 
     expect(payload.schemaVersion).toBe(1)
     expect(payload.subject.externalCustomerRefs[0]).toMatchObject({ system: 'pos', id: 'cust_123' })
+  })
+
+  it('accepts the POS return eligibility request contract', () => {
+    const payload = returnEligibilityPayloadSchema.parse({
+      workspaceId: '11111111-1111-4111-8111-111111111111',
+      sourceSystem: 'pos',
+      customer: { email: 'customer@example.com' },
+      product: { sku: 'SKU-123' },
+      requested: { quantity: 1, action: 'either' }
+    })
+
+    expect(payload).toMatchObject({
+      sourceSystem: 'pos',
+      customer: { email: 'customer@example.com' },
+      requested: { action: 'either' }
+    })
   })
 })

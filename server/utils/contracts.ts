@@ -4,6 +4,18 @@ export const crmValueTypes = ['text', 'number', 'date', 'boolean', 'email', 'pho
 export const paidPlanKeys = ['hosted_growth', 'hosted_scale'] as const
 export const workspaceRoles = ['owner', 'admin', 'member', 'agent'] as const
 export const profileSensitivityLevels = ['public', 'internal', 'confidential', 'restricted'] as const
+export const returnEligibilityDecisions = [
+  'eligible',
+  'exchange_only',
+  'store_credit_only',
+  'manager_review',
+  'ineligible',
+  'not_found',
+  'insufficient_context'
+] as const
+export const returnEligibilityActions = ['refund', 'exchange', 'store_credit', 'either'] as const
+
+const optionalDateHintSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
 
 export const schemaFieldPayloadSchema = z.object({
   workspaceId: z.string().uuid().optional(),
@@ -77,9 +89,41 @@ export const crmEventPayloadSchema = z.object({
   schemaVersion: z.number().int().positive().default(1)
 })
 
+export const returnEligibilityPayloadSchema = z.object({
+  workspaceId: z.string().uuid().optional(),
+  sourceSystem: z.string().trim().min(2).default('pos'),
+  store: z.object({
+    id: z.string().trim().min(1).optional(),
+    registerId: z.string().trim().min(1).optional()
+  }).default({}),
+  staff: z.object({
+    id: z.string().trim().min(1).optional()
+  }).default({}),
+  customer: z.object({
+    email: z.string().trim().email()
+  }),
+  product: z.object({
+    sku: z.string().trim().min(1).optional(),
+    barcode: z.string().trim().min(1).optional(),
+    productIdentityId: z.string().trim().min(1).optional(),
+    name: z.string().trim().min(1).optional()
+  }).default({}),
+  purchaseHint: z.object({
+    orderDate: optionalDateHintSchema,
+    receiptOrOrderNumber: z.string().trim().min(1).optional()
+  }).default({}),
+  requested: z.object({
+    quantity: z.number().positive().default(1),
+    action: z.enum(returnEligibilityActions).default('either')
+  }).default({ quantity: 1, action: 'either' })
+})
+
 export type SchemaFieldPayload = z.infer<typeof schemaFieldPayloadSchema>
 export type CheckoutPayload = z.infer<typeof checkoutPayloadSchema>
 export type CrmEventPayload = z.infer<typeof crmEventPayloadSchema>
 export type WorkspaceSetupPayload = z.infer<typeof workspaceSetupPayloadSchema>
 export type ProfilePackInstallPayload = z.infer<typeof profilePackInstallPayloadSchema>
 export type ProfileFieldUpdatePayload = z.infer<typeof profileFieldUpdatePayloadSchema>
+export type ReturnEligibilityPayload = z.infer<typeof returnEligibilityPayloadSchema>
+export type ReturnEligibilityDecision = typeof returnEligibilityDecisions[number]
+export type ReturnEligibilityAction = typeof returnEligibilityActions[number]

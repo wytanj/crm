@@ -105,6 +105,29 @@ Expected output:
 - `crm_execution_logs` entry
 - `crm_audit_events` entry
 
+### Return Eligibility Check
+
+Answer a POS counter request without exposing the full customer graph.
+
+Expected inputs:
+
+- `workspace_id`
+- customer email
+- product SKU, barcode, product identity, or name
+- optional order date
+- optional receipt or order number
+- requested quantity
+- requested action
+
+Expected output:
+
+- decision: `eligible`, `exchange_only`, `store_credit_only`, `manager_review`, `ineligible`, `not_found`, or `insufficient_context`
+- allowed actions
+- optional authorization ID
+- counter-safe matched purchase evidence
+- reason codes
+- manager approval requirement
+
 ## Restricted Skills
 
 These should require explicit capability grants:
@@ -115,7 +138,8 @@ These should require explicit capability grants:
 - Deleting records.
 - Bulk updating many entities.
 - Writing directly to `crm_field_definitions` without a proposal.
+- Creating return policies or issuing manager overrides outside published policy.
 
 ## Future MCP Shape
 
-Future MCP tools should map to these skills with workspace-scoped authorization and should reuse the same API, proposal, approval, execution, and audit tables as the web application.
+Future MCP tools should map to these skills with workspace-scoped authorization and should reuse the same API, proposal, approval, execution, and audit tables as the web application. Return eligibility should map to a narrow `crm.returns.checkEligibility` tool rather than a broad customer-graph read.

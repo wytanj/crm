@@ -31,6 +31,14 @@ Agents should propose before doing any of the following:
 - invoking paid integrations
 - writing to external systems
 
+## Operational Eligibility Checks
+
+Some operational checks are allowed to run directly because they are narrow, policy-backed, and workspace-scoped. Return eligibility is one of those checks: POS can call `POST /api/v1/pos/returns/eligibility` with a customer email, product, optional purchase hints, and requested action.
+
+The route records the check, returns only counter-safe evidence, and may issue a consumable authorization. It should not expose unrelated customer graph data.
+
+Agents and integrations should still require proposals or explicit approval for return-policy changes, manager overrides, identity merges, customer-data exports, and connector fallback changes.
+
 ## Schema Extension Example
 
 Agents can suggest new fields when imported data reveals useful properties.

@@ -41,6 +41,89 @@ Rules:
 - `occurredAt` must be an ISO datetime.
 - Without Supabase server credentials or `workspaceId`, the route returns a demo accepted response.
 - With Supabase server credentials, the route upserts into `crm_events` by `(workspace_id, source_system, idempotency_key)`.
+- `pos.sale.completed`, `commerce.order.completed`, and `ecommerce.order.completed` events are projected into `crm_commerce_orders` and `crm_commerce_order_lines` when line data is present.
+- `pos.return.completed`, `commerce.return.completed`, and `ecommerce.return.completed` events consume referenced return authorizations and update returned-quantity counters through idempotent return facts.
+
+### `POST /api/v1/pos/returns/eligibility`
+
+Checks whether a POS return, exchange, or store-credit request is allowed without exposing the full customer graph.
+
+Payload:
+
+```json
+{
+  "workspaceId": "workspace uuid",
+  "sourceSystem": "pos",
+  "store": {
+    "id": "store_001",
+    "registerId": "register_001"
+  },
+  "staff": {
+    "id": "staff_123"
+  },
+  "customer": {
+    "email": "customer@example.com"
+  },
+  "product": {
+    "sku": "SKU-123",
+    "barcode": "8888888888888",
+    "productIdentityId": "optional product identity id",
+    "name": "Product name"
+  },
+  "purchaseHint": {
+    "orderDate": "2026-06-01",
+    "receiptOrOrderNumber": "POS-000123"
+  },
+  "requested": {
+    "quantity": 1,
+    "action": "either"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "mode": "supabase",
+  "decisionId": "return check uuid",
+  "authorizationId": "return authorization uuid or null",
+  "decision": "eligible",
+  "allowedActions": ["refund", "exchange", "store_credit"],
+  "managerRequired": false,
+  "expiresAt": "2026-06-24T09:30:00.000Z",
+  "reasonCodes": ["within_window", "quantity_available"],
+  "message": "Return is eligible.",
+  "matchedPurchase": {
+    "sourceSystem": "pos",
+    "orderRef": "POS-000123",
+    "orderDate": "2026-06-01T04:00:00.000Z",
+    "orderLineRef": "line-1",
+    "productName": "Product name",
+    "sku": "SKU-123",
+    "quantityPurchased": 1,
+    "quantityAlreadyReturned": 0,
+    "quantityReturnable": 1,
+    "returnableUntil": "2026-07-01T04:00:00.000Z"
+  },
+  "policy": {
+    "version": 4,
+    "label": "Standard 30 day return policy"
+  },
+  "counterEvidence": [
+    { "label": "Order date", "value": "2026-06-01" }
+  ]
+}
+```
+
+Rules:
+
+- Supabase mode requires `Authorization: Bearer <access_token>` and workspace membership.
+- Without Supabase server credentials or `workspaceId`, the route returns a demo decision.
+- The route is POS-facing and counter-safe; it does not return unrelated purchases, graph relationships, segments, or confidential profile fields.
+- Decisions are idempotent by a normalized request hash until `expiresAt`.
+- Decisions may be `eligible`, `exchange_only`, `store_credit_only`, `manager_review`, `ineligible`, `not_found`, or `insufficient_context`.
+- Eligible, exchange-only, and store-credit-only decisions issue a consumable authorization. Manager-review decisions do not issue an authorization until a future approved override path exists.
 
 ### `GET /api/v1/people/[person_id]`
 

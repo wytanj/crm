@@ -37,6 +37,20 @@ Direct writes should be limited to low-risk draft or staging actions. Use propos
 - Mutating billing state.
 - Any action that affects many records.
 
+## Operational Eligibility Checks
+
+Counter-safe eligibility checks can execute directly when they are narrow, workspace-scoped, and backed by an existing published policy. `POST /api/v1/pos/returns/eligibility` is one of these direct operational checks: it evaluates product, customer email, optional purchase hints, and requested action, then records an eligibility check and optional authorization.
+
+Agents and integrations must still use proposals or explicit approval for:
+
+- Creating or changing return policies.
+- Manager overrides that authorize returns outside policy.
+- Identity merges used to improve return matching.
+- Exporting return history or customer purchase data.
+- Changing connector fallback behavior.
+
+Completed POS return events consume authorizations and update returned-quantity counters through idempotent facts. Replayed outbox events must not create duplicate returned quantity.
+
 ## MCP Direction
 
 Future MCP tools should expose workspace-scoped actions:

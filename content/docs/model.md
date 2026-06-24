@@ -122,3 +122,23 @@ Every source write should carry:
 | `context` | Channel, country, currency, location, register, listing, or related context. |
 | `payload` | Source-specific event payload. |
 | `schema_version` | Contract version for event readers. |
+
+## Commerce Return Eligibility
+
+crmOS keeps a commerce memory layer so POS can ask a narrow question at the counter: given this customer email, product, optional order hint, and requested action, is the return allowed?
+
+The boundary is deliberate:
+
+- POS owns refund execution, exchange execution, tender movement, receipts, inventory disposition, register audit, and outbox delivery.
+- crmOS owns identity resolution, cross-channel purchase memory, return policy evaluation, matched-order evidence, and authorization references.
+
+| Table | Purpose |
+| --- | --- |
+| `crm_commerce_orders` | Orders projected from POS, ecommerce, and future commerce sources. |
+| `crm_commerce_order_lines` | Purchased items with product identity, purchased quantity, returned quantity, return deadline, and policy snapshot. |
+| `crm_commerce_return_facts` | Idempotent completed-return facts used to update returned quantity once. |
+| `crm_return_policies` | Versioned workspace return-policy rules. |
+| `crm_return_eligibility_checks` | Normalized POS check request plus decision, reason codes, evidence, and cache expiry. |
+| `crm_return_authorizations` | Consumable permission for POS to complete an allowed return or exchange. |
+
+Eligibility decisions are `eligible`, `exchange_only`, `store_credit_only`, `manager_review`, `ineligible`, `not_found`, and `insufficient_context`. The route returns only counter-safe purchase evidence, never the full customer graph.

@@ -44,7 +44,58 @@ Payload:
 }
 ```
 
-When Supabase is configured, the route upserts into `crm_events` by workspace, source system, and idempotency key.
+When Supabase is configured, the route upserts into `crm_events` by workspace, source system, and idempotency key. Sale/order events with line data also project into commerce order memory. Return events with crmOS references consume return authorizations and update returned-quantity counters through idempotent return facts.
+
+## POST /api/v1/pos/returns/eligibility
+
+Checks whether POS may proceed with a refund, exchange, or store-credit flow. The response is intentionally counter-safe: it can include matched order facts and allowed actions, but it does not expose unrelated customer graph data, marketing segments, or confidential profile fields.
+
+Payload:
+
+```json
+{
+  "workspaceId": "workspace uuid",
+  "sourceSystem": "pos",
+  "store": {
+    "id": "store_001",
+    "registerId": "register_001"
+  },
+  "staff": {
+    "id": "staff_123"
+  },
+  "customer": {
+    "email": "customer@example.com"
+  },
+  "product": {
+    "sku": "SKU-123",
+    "barcode": "8888888888888",
+    "productIdentityId": "optional product identity id",
+    "name": "Product name"
+  },
+  "purchaseHint": {
+    "orderDate": "2026-06-01",
+    "receiptOrOrderNumber": "POS-000123"
+  },
+  "requested": {
+    "quantity": 1,
+    "action": "either"
+  }
+}
+```
+
+Response decisions:
+
+| Decision | Meaning |
+| --- | --- |
+| `eligible` | Refund and exchange may proceed according to `allowedActions`. |
+| `exchange_only` | Refund is blocked, but exchange is allowed. |
+| `store_credit_only` | Store credit is allowed, but original tender refund is blocked. |
+| `manager_review` | POS may proceed only after manager approval. |
+| `ineligible` | Policy blocks the return or exchange. |
+| `not_found` | No matching sale or policy fallback was available. |
+| `insufficient_context` | More product, receipt, or order context is required. |
+
+Supabase-backed calls require a bearer access token and workspace membership. Demo mode returns a deterministic sample decision when credentials or `workspaceId` are missing.
 
 ## GET /api/v1/people/[person_id]
 

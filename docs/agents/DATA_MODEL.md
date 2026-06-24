@@ -165,3 +165,33 @@ Every source write should carry:
 - `schema_version`
 
 CRM should keep customer graph, consent, customer memory, segments, and semantic query foundations. POS, SKUMS, and loyalty remain the source of truth for checkout execution, product taxonomy, and loyalty economics.
+
+## Commerce Return Eligibility
+
+crmOS now keeps a commerce memory layer for counter-safe return checks. POS remains the system of record for return execution, tender movement, receipt truth, inventory disposition, register audit, and POS outbox events. crmOS owns identity resolution, purchase memory, return policy evaluation, matched-order evidence, and consumable authorization references.
+
+Commerce read-model tables:
+
+- `crm_commerce_orders`: workspace-scoped orders projected from POS, ecommerce, and future commerce events.
+- `crm_commerce_order_lines`: purchased line items with SKU/product identity, purchased quantity, returned quantity, return deadline, and policy snapshot.
+- `crm_commerce_return_facts`: idempotent return-line facts from completed return events. These prevent replayed outbox events from incrementing returned quantity twice.
+
+Policy and decision tables:
+
+- `crm_return_policies`: versioned workspace return-policy rules. A published policy may define return window, allowed actions, no-matched-sale behavior, outside-window behavior, and decision cache duration.
+- `crm_return_eligibility_checks`: one normalized POS return-check request and the resulting decision. Uniqueness is `(workspace_id, request_hash)`.
+- `crm_return_authorizations`: consumable authorization issued for `eligible`, `exchange_only`, or `store_credit_only` decisions. A completed POS return consumes the authorization.
+
+Stable decisions are:
+
+- `eligible`
+- `exchange_only`
+- `store_credit_only`
+- `manager_review`
+- `ineligible`
+- `not_found`
+- `insufficient_context`
+
+The POS-facing eligibility response must stay narrow. It may include matched order date, source, purchased quantity, already returned quantity, returnable quantity, deadline, allowed actions, reason codes, and manager requirement. It must not expose unrelated purchases, full customer graph relationships, marketing segments, or confidential profile fields.
+
+No matched sale is a policy decision, not a POS guess. A published policy can route those requests to manager review, store credit, exchange-only, ineligible, or not-found outcomes without changing POS code.
